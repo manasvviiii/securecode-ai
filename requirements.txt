@@ -1,0 +1,10 @@
+
+fastapi
+uvicorn
+streamlit
+anthropic
+PyPDF2
+python-docx
+requests
+pydantic
+python-multipart
