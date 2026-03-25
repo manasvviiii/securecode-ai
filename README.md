@@ -5,7 +5,6 @@
 A developer-focused security tool that scans source code, `.env` configs, and logs for hardcoded secrets, credential leaks, and security risks — with Claude AI-powered remediation insights, line-level highlighting, and a compliant REST API.
 
 **Domain: Software Development (SDE)**
-**Event: SISA Hackathon — March 2026**
 
 ---
 
