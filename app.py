@@ -122,7 +122,7 @@ if st.button("🚀 Scan for Security Issues", type="primary", use_container_widt
         try:
             data = {"input_type": input_type}
             display_text = ""
-            api_url = "http://127.0.0.1:8000/upload"
+            api_url = "https://securecode-ai-j38r.onrender.com/upload"
 
             effective_text = sample_text if sample_text else text_input
 
