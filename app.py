@@ -3,7 +3,7 @@ import requests
 
 st.set_page_config(page_title="SecureCode AI", layout="wide", page_icon="🛡️")
 
-# ==================== UI CSS ====================
+# UI CSS 
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@500;700&display=swap');
@@ -38,13 +38,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ==================== HEADER ====================
+# HEADER 
 st.title("🛡️ SecureCode AI")
 st.markdown("**Pre-Commit Security Gate & CI/CD Analyzer**")
 st.caption("Prevent developers from committing hardcoded secrets, credentials, and security risks into version control — with AI-powered remediation insights.")
 st.divider()
 
-# ==================== SIDEBAR ====================
+#  SIDEBAR
 st.sidebar.header("🔧 Input Configuration")
 
 input_type = st.sidebar.selectbox(
@@ -85,7 +85,7 @@ st.sidebar.subheader("⚙️ Policy Options")
 mask_values    = st.sidebar.checkbox("🔒 Mask sensitive values", value=True)
 block_critical = st.sidebar.checkbox("🚫 Block on high/critical risk", value=False)
 
-# ==================== DEMO SAMPLES ====================
+#  DEMO SAMPLES
 st.sidebar.divider()
 st.sidebar.subheader("🧪 Quick Demo Samples")
 
@@ -116,7 +116,7 @@ api_key=sk-prod-xyz123abc
 [2026-03-24 10:00:06] DEBUG token=eyJhbGciOiJIUzI1NiJ9.payload.sig
 """
 
-# ==================== MAIN ANALYZE BUTTON ====================
+# MAIN ANALYZE BUTTON 
 if st.button("🚀 Scan for Security Issues", type="primary", use_container_width=True):
     with st.spinner("Scanning for secrets, credentials, and security risks..."):
         try:
@@ -150,7 +150,7 @@ ERROR: NullPointerException at com.company.service.LoginService.java:45"""
                 data["content"] = content
                 response = requests.post(api_url, data=data)
 
-            # ==================== RESULTS ====================
+            #  RESULTS 
             if response.status_code == 200:
                 result = response.json()
                 st.success("✅ Scan Completed!")
@@ -198,7 +198,7 @@ ERROR: NullPointerException at com.company.service.LoginService.java:45"""
                     for insight in result.get("insights", ["No insights generated"]):
                         st.write(f"• {insight}")
 
-                # ==================== LOG VIEWER ====================
+                #  LOG VIEWER 
                 st.divider()
                 st.subheader("📜 Highlighted Source View")
 
@@ -222,6 +222,6 @@ ERROR: NullPointerException at com.company.service.LoginService.java:45"""
         except Exception as e:
             st.error(f"❌ Could not connect to backend. Make sure uvicorn is running.\n\nError: {e}")
 
-# ==================== FOOTER ====================
+#  FOOTER
 st.divider()
 st.caption("SecureCode AI · Software Development Domain · SISA Hackathon March 2026 ·")
