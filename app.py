@@ -3,6 +3,10 @@ import requests
 
 st.set_page_config(page_title="SecureCode AI", layout="wide", page_icon="🛡️")
 
+# --- INITIALIZE SESSION STATE ---
+if "user_code_input" not in st.session_state:
+    st.session_state.user_code_input = ""
+
 # UI CSS 
 st.markdown("""
 <style>
@@ -44,8 +48,31 @@ st.markdown("**Pre-Commit Security Gate & CI/CD Analyzer**")
 st.caption("Prevent developers from committing hardcoded secrets, credentials, and security risks into version control — with AI-powered remediation insights.")
 st.divider()
 
-#  SIDEBAR
+# SIDEBAR
 st.sidebar.header("🔧 Input Configuration")
+
+# --- MEMORY CALLBACKS ---
+def set_python_sample():
+    st.session_state.user_code_input = """import os
+import requests
+
+# TODO: remove hardcoded key before merging
+API_KEY = "sk-prod-abc123xyz"
+DB_PASSWORD = "admin@1234"
+SECRET_KEY = "my-jwt-secret-key"
+
+def get_user(email):
+    # FIXME: hardcoded password here
+    password = "hunter2"
+    return requests.get(f"https://api.example.com/user?email={email}&key={API_KEY}")"""
+
+def set_log_sample():
+    st.session_state.user_code_input = """[2026-03-24 10:00:01] INFO Starting service
+email=admin@company.com
+password=admin123
+api_key=sk-prod-xyz123abc
+[2026-03-24 10:00:05] ERROR NullPointerException at LoginService.java:45
+[2026-03-24 10:00:06] DEBUG token=eyJhbGciOiJIUzI1NiJ9.payload.sig"""
 
 input_type = st.sidebar.selectbox(
     "Select Input Type",
@@ -73,6 +100,7 @@ uploaded_file = st.sidebar.file_uploader(
 text_input = st.sidebar.text_area(
     "Or paste code / text / log",
     height=140,
+    key="user_code_input",
     placeholder="""# Paste your code, log, or .env here
 # Example:
 password=admin123
@@ -85,36 +113,15 @@ st.sidebar.subheader("⚙️ Policy Options")
 mask_values    = st.sidebar.checkbox("🔒 Mask sensitive values", value=True)
 block_critical = st.sidebar.checkbox("🚫 Block on high/critical risk", value=False)
 
-#  DEMO SAMPLES
+# DEMO SAMPLES
 st.sidebar.divider()
 st.sidebar.subheader("🧪 Quick Demo Samples")
 
 col_a, col_b = st.sidebar.columns(2)
-sample_text = ""
 
-if col_a.button("Python Code", use_container_width=True):
-    sample_text = """import os
-import requests
-
-# TODO: remove hardcoded key before merging
-API_KEY = "sk-prod-abc123xyz"
-DB_PASSWORD = "admin@1234"
-SECRET_KEY = "my-jwt-secret-key"
-
-def get_user(email):
-    # FIXME: hardcoded password here
-    password = "hunter2"
-    return requests.get(f"https://api.example.com/user?email={email}&key={API_KEY}")
-"""
-
-if col_b.button("App Log", use_container_width=True):
-    sample_text = """[2026-03-24 10:00:01] INFO Starting service
-email=admin@company.com
-password=admin123
-api_key=sk-prod-xyz123abc
-[2026-03-24 10:00:05] ERROR NullPointerException at LoginService.java:45
-[2026-03-24 10:00:06] DEBUG token=eyJhbGciOiJIUzI1NiJ9.payload.sig
-"""
+# Notice we added 'on_click' to trigger the memory functions
+col_a.button("Python Code", use_container_width=True, on_click=set_python_sample)
+col_b.button("App Log", use_container_width=True, on_click=set_log_sample)
 
 # MAIN ANALYZE BUTTON 
 if st.button("🚀 Scan for Security Issues", type="primary", use_container_width=True):
@@ -124,7 +131,8 @@ if st.button("🚀 Scan for Security Issues", type="primary", use_container_widt
             display_text = ""
             api_url = "https://securecode-ai-j38r.onrender.com/upload"
 
-            effective_text = sample_text if sample_text else text_input
+            # Use the value from the text box directly
+            effective_text = text_input
 
             if uploaded_file is not None:
                 if len(uploaded_file.getvalue()) > 5 * 1024 * 1024:
@@ -150,7 +158,7 @@ ERROR: NullPointerException at com.company.service.LoginService.java:45"""
                 data["content"] = content
                 response = requests.post(api_url, data=data)
 
-            #  RESULTS 
+            # RESULTS 
             if response.status_code == 200:
                 result = response.json()
                 st.success("✅ Scan Completed!")
@@ -198,7 +206,7 @@ ERROR: NullPointerException at com.company.service.LoginService.java:45"""
                     for insight in result.get("insights", ["No insights generated"]):
                         st.write(f"• {insight}")
 
-                #  LOG VIEWER 
+                # LOG VIEWER 
                 st.divider()
                 st.subheader("📜 Highlighted Source View")
 
@@ -222,6 +230,6 @@ ERROR: NullPointerException at com.company.service.LoginService.java:45"""
         except Exception as e:
             st.error(f"❌ Could not connect to backend. Make sure uvicorn is running.\n\nError: {e}")
 
-#  FOOTER
+# FOOTER
 st.divider()
 st.caption("SecureCode AI · Software Development Domain · SISA Hackathon March 2026 ·")
