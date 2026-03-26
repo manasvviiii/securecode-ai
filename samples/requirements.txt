@@ -1,1 +1,0 @@
-Test the user registration and login functionality securely. Check for any secret leaks in logs.

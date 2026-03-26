@@ -10,13 +10,11 @@ from anthropic import AsyncAnthropic, APIError
 from docx import Document
 import PyPDF2
 
-# ==================== OBSERVABILITY SETUP ====================
+#  OBSERVABILITY SETUP 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("securecode")
 
-# ==================== CLAUDE API CLIENT (SAFE INIT) ====================
-# FIX 1: Never crash on boot if API key is missing.
-# We lazily check the key at call time instead of at import time.
+#  CLAUDE API CLIENT 
 _api_key = os.environ.get("ANTHROPIC_API_KEY", "")
 client = AsyncAnthropic(api_key=_api_key) if _api_key else None
 if not client:
@@ -26,7 +24,7 @@ app = FastAPI(title="SecureCode AI - Code & Log Security Analyzer")
 
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
-# ==================== MODELS ====================
+# MODELS
 class Finding(BaseModel):
     type: str
     risk: str
@@ -49,7 +47,7 @@ class AnalyzeRequest(BaseModel):
     options: Optional[Dict[str, Any]] = None
 
 
-# ==================== DETECTION ENGINE ====================
+# DETECTION ENGINE
 def detect_sensitive_data(text: str) -> List[Finding]:
     findings = []
     lines = text.splitlines()
@@ -94,7 +92,7 @@ def detect_sensitive_data(text: str) -> List[Finding]:
             match = re.search(r'(\+?[\d\s\-().]{10,15})', line)
             findings.append(Finding(type="phone_number", risk="medium", line=i, value=match.group(1).strip()))
 
-        # 7. STACK TRACE / ERROR — medium
+        
         # 7. STACK TRACE / ERROR — medium
         elif re.search(r'(traceback|nullpointer|exception in thread)', line, re.IGNORECASE) or (re.search(r'\berror\b', line, re.IGNORECASE) and not re.search(r'(except |logging\.|raise |return |def )', line, re.IGNORECASE)):
             findings.append(Finding(type="stack_trace", risk="medium", line=i, value=None))
@@ -109,7 +107,7 @@ def detect_sensitive_data(text: str) -> List[Finding]:
     return findings
 
 
-# ==================== POLICY ENGINE ====================
+# POLICY ENGINE 
 def apply_policy(findings: list, content: str, options: dict) -> tuple:
     mask = options.get("mask", False)
     block_high_risk = options.get("block_high_risk", False)
@@ -152,7 +150,7 @@ def compute_risk_score(findings: list) -> int:
     )
 
 
-# ==================== CLAUDE AI INSIGHTS ====================
+ 
 # FIX 2: Use AsyncAnthropic + await so we never block the event loop.
 async def generate_insights(text: str, findings: list, content_type: str = "log") -> tuple:
     """Generate security insights using Claude API asynchronously. Returns (insights list, source)."""
@@ -221,7 +219,7 @@ Return ONLY 3 lines, each starting with a dash (-). No intro, no extra text."""
         return result, "fallback"
 
 
-# ==================== ENDPOINT 1: JSON API (For Judges / CI-CD) ====================
+#ENDPOINT 1: JSON API (For Judges / CI-CD) 
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_json(request: AnalyzeRequest):
     start = time.time()
@@ -258,7 +256,7 @@ async def analyze_json(request: AnalyzeRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ==================== ENDPOINT 2: FILE UPLOAD (For Streamlit UI) ====================
+# ENDPOINT 2: FILE UPLOAD (For Streamlit UI)
 @app.post("/upload", response_model=AnalyzeResponse)
 async def upload_file(
     input_type: str = Form(...),
@@ -336,7 +334,7 @@ ERROR: NullPointerException at com.company.service.LoginService.java:45"""
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ==================== HEALTH CHECK ====================
+#  HEALTH CHECK 
 @app.get("/health")
 def health_check():
     logger.info("[HEALTH] ping")
